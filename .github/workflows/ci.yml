@@ -1,0 +1,26 @@
+name: Build and Test
+
+on: 
+  push:
+    branches: [ master ]
+    paths:
+    - 'ConsoleActions/**'
+    - 'SampleREPL/**'
+env:
+  DOTNET_VERSION: '2.2.108'
+  Configuration: Release
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Build Projects
+      run: dotnet build --configuration ${{ env.Configuration }}
+    - name: Run Tests
+      run: dotnet test tests/**/*.csproj --configuration ${{ env.Configuration }}

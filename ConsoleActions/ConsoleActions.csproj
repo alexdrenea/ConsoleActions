@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>0.0.1-local-prerelease</PackageVersion>
     <Authors>Alex Drenea</Authors>
     <Description>
       Simple library that enables a basic REPL experience on a .NET Console application.

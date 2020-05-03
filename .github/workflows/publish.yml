@@ -1,0 +1,33 @@
+name: publish
+
+on: 
+  release:
+    types: 
+      - created
+env:
+  DOTNET_VERSION: '2.2.108'
+  Configuration: Release
+        
+jobs:
+ deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+    - name: Substitute String
+      uses: BjornLuG/substitute-string-action@v1
+      id: sub
+      with:
+        _input-text: $${{ GITHUB.REF }}
+        $refs/tags/v: ""
+        
+    - name: Package 
+      run: dotnet pack ConsoleActions/ConsoleActions.csproj --configuration ${{ env.Configuration }} -o nupkg -p:PackageVersion=${{ steps.sub.outputs.result }}
+
+    - name: Publish
+      run: dotnet nuget push ConsoleActions/nupkg/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+
