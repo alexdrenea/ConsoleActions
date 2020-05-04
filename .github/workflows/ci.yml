@@ -6,8 +6,8 @@ on:
     paths:
     - 'ConsoleActions/**'
     - 'SampleREPL/**'
+    - '.github/workflows/**'
 env:
-  DOTNET_VERSION: '2.2.108'
   Configuration: Release
 jobs:
   build:
@@ -18,9 +18,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+
     - name: Build Projects
       run: dotnet build --configuration ${{ env.Configuration }}
     - name: Run Tests
-      run: dotnet test **/*.csproj --configuration ${{ env.Configuration }}
+      run: dotnet test ConsoleActions.Tests/ConsoleActions.Tests.csproj --configuration ${{ env.Configuration }}
