@@ -41,10 +41,9 @@ Each method you want to participate in the action need to follow these rules:
  - be `void` or `async` and return `Task`
  - either have no parameters, or one `string` argument or one `string` and one `dynamic` arguments
 
-## Declare actions
-There are a few ways you can initialize your Action:
+Declaring Actions:
 
-1. The simplest and most basic usage.
+#### 1. The simplest and most basic usage.
 ```csharp
 [Action("a", "methodA"]
 public void MethodA()
@@ -57,7 +56,7 @@ Let's dive into the example above:
  - The method is annotated with the `Action` attribute which is initialized with a `params string[]` which represent the keywords you need to type in the console app to call `MethodA()`
  - When running your console app, you can type either `a` or `methodA` to call your method.
 
-1. Complete example defining all available parameters
+#### 2. Complete example defining all available parameters
 ```csharp
 [Action("b", "methodB", Description = "Test method that does not need an input", DisplayOrder = 1, MeasureExexutionTime = true)]
 public async Task MethodB(string input)
@@ -86,11 +85,9 @@ Withing the declaration of an `ActionParameter` you can define the following:
 - **type**: Specifies the type of the parsed argument. Currently, the ActionParameter parsing engine supports `string`, `bool`, numerics and `DateTime` parameters. The default value is `string`
 - **defaultValue**: Used to specify the default value of the parameter if it's not present in the input command. defaults to default(type)
 
-
-## Declare parameters
 Let's look at a few ways to declare your parameters:
 
-1. Basic usage with explicit declarations
+#### 1. Basic usage with explicit declarations
 ```csharp
 [Action("d", "methodD")]
 [ActionParameter("fileName", "-f","--fileName", Type = typeof(string), DefaultValue = ""))]
@@ -106,7 +103,7 @@ In the exmple above, `MethodD` declares one parameter.
 - The type of the parameter is string
 - DefaultValue is empty string
 
-2. Basic usage with defaults
+#### 2. Basic usage with defaults
 ```csharp
 [Action("e", "methodE")]
 [ActionParameter("fileName"))]
@@ -120,7 +117,7 @@ MethodE above, is identical with MethodD. Specifically, note the inferred tokens
 
 Exceptions would be thown by the parsing engine before calling your method if the parameters provided are invalid according to their declared types.
 
-3. Multiple parameters on an action
+#### 3. Multiple parameters on an action
 ```csharp
 [Action("f", "methodF", DisplayOrder = 4, MeasureExexutionTime = true)]
 [ActionParameter("fileName", "-f", "--file")]
