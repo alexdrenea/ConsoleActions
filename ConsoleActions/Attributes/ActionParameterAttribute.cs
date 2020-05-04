@@ -9,19 +9,19 @@ namespace ConsoleActions.Attributes
     {
         public ActionParameterAttribute(string name, params string[] variants)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentOutOfRangeException("must provive parameter name");
-            if (name.Any(_ => !char.IsLetterOrDigit(_))) throw new ArgumentOutOfRangeException("parameter name must only contain letters and digits");
-            if (!char.IsLetter(name.Trim()[0])) throw new ArgumentOutOfRangeException("parameter name must start with letter");
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. Must provive parameter name");
+            if (name.Any(_ => !char.IsLetterOrDigit(_))) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. Parameter name must only contain letters and digits");
+            if (!char.IsLetter(name.Trim()[0])) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. Parameter name must start with letter");
 
             PropertyName = name;
             Variants = variants;
             if (!Variants.Any())
                 Variants = new[] { $"-{PropertyName[0]}", $"--{PropertyName}" };
 
-            if (Variants.Any(v => !v.StartsWith("-"))) throw new ArgumentOutOfRangeException("Parameter variant must start with -");
+            if (Variants.Any(v => !v.StartsWith("-"))) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. Parameter variant must start with -");
             //TODO - nicer condition
-            if (Variants.Any(v => v.StartsWith("-") && v.Length > 1 && v[1] != '-' && v.Length != 2)) throw new ArgumentOutOfRangeException("If parameter starts with -, it must be a single letter");
-            if (Variants.Any(v => v.StartsWith("--") && v.Length <= 3)) throw new ArgumentOutOfRangeException("Parameter variant must start with -- must be more than one letter");
+            if (Variants.Any(v => v.StartsWith("-") && v.Length > 1 && v[1] != '-' && v.Length != 2)) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. If parameter starts with -, it must be a single letter");
+            if (Variants.Any(v => v.StartsWith("--") && v.Length <= 3)) throw new ArgumentOutOfRangeException($"Error processing '{name}' Action Parameter. Parameter variant must start with -- must be more than one letter");
             
             Type = typeof(string);
         }

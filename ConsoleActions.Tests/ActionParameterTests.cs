@@ -9,10 +9,7 @@ namespace ConsoleActions.Tests
     [TestClass]
     public class ActionParameterTests
     {
-        [TestInitialize]
-        public void Init()
-        {
-        }
+
 
         #region Multi Parameters tests
 
@@ -621,6 +618,5 @@ namespace ConsoleActions.Tests
 
         #endregion
     }
-
 
 }

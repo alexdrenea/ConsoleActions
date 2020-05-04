@@ -16,7 +16,7 @@ namespace ConsoleActions
         /// <param name="action">Func to execute when the action is called</param>
         /// <param name="description">Description of command to be displayed when the help command is invoked</param>
         /// <param name="commands">List of keywords/commands that trigger the function (e.g. help, ?)</param>
-        public ConsoleAction(Func<object, Task> action, string description, params string[] commands)
+        public ConsoleAction(Func<string, Task> action, string description, params string[] commands)
             : this(action, description, int.MaxValue, commands)
         {
         }
@@ -28,7 +28,7 @@ namespace ConsoleActions
         /// <param name="description">Description of command to be displayed when the help command is invoked</param>
         /// <param name="order">Order in the help menu</param>
         /// <param name="commands">List of keywords/commands that trigger the function (e.g. help, ?)</param>
-        public ConsoleAction(Func<object, Task> action, string description, int order, params string[] commands)
+        public ConsoleAction(Func<string, Task> action, string description, int order, params string[] commands)
         {
             ActionFunc = action;
             Action = null;
@@ -51,16 +51,25 @@ namespace ConsoleActions
             Action = action;
             ActionContext = actionContext;
             var configuration = action.GetCustomAttribute<ActionAttribute>();
-            var parameters = action.GetCustomAttributes<ActionParameterAttribute>();
-
-            Parameters = parameters.Select(_ => new ConsoleActionParameter
+            try
             {
-                ParameterName = _.PropertyName,
-                Variants = _.Variants.ToArray(),
-                Type = _.Type,
-                DefaultValue = _.DefaultValue
-            });
-            Parameters.ToDictionary(k => k.ParameterName); //this checks that we don't duplicate parameter names
+                var parameters = action.GetCustomAttributes<ActionParameterAttribute>();
+                Parameters = parameters.Select(_ => new ConsoleActionParameter
+                {
+                    ParameterName = _.PropertyName,
+                    Variants = _.Variants.ToArray(),
+                    Type = _.Type,
+                    DefaultValue = _.DefaultValue
+                });
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                throw new Exception($"Error processing '{action.Name}' Action. {e.ParamName}", e);
+            }
+            if (Parameters.GroupBy(k => k.ParameterName).Any(g => g.Count() > 1))
+                throw new Exception($"Error processing '{action.Name}' Action. Found duplicate parameter name.");
+            if (Parameters.SelectMany(p => p.Variants).GroupBy(_ => _).Any(g => g.Count() > 1))
+                throw new Exception($"Error processing '{action.Name}' Action. Found multiple parametes that share the same variant. If a variant is not explicitly specified, the first letter of the parameter will be used. Check if you have multiple parametes that start with the same letter.");
 
             Commands = configuration.Triggers;
             Description = configuration.Description ?? "";
@@ -73,48 +82,70 @@ namespace ConsoleActions
         /// </summary>
         public IEnumerable<string> Commands { get; set; }
 
+
         /// <summary>
         /// Shows up as the description of the command when run help
         /// </summary>
         public string Description { get; set; }
 
         /// <summary>
+        /// Gets or sets a value used to sort the commands when displayed in the help system.
+        /// </summary>
+        public int Order { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating if the Action should print the total execution time after the action is complete.
+        /// </summary>
+        public bool MeasureExecutionTime { get; set; }
+
+
+        private IEnumerable<ConsoleActionParameter> Parameters { get; set; }
+
+        /// <summary>
         /// Action to be executed when a the command is called.
         /// The function gets a string that represents whatever the user entered after the command
         /// It is the method's responsability to parse that input into whatever it needs.
         /// </summary>
-        public Func<object, Task> ActionFunc { get; set; }
+        private Func<string, Task> ActionFunc { get; set; }
 
-        public IEnumerable<ConsoleActionParameter> Parameters { get; set; }
-        public MethodInfo Action { get; set; }
-        public object ActionContext { get; set; }
-        public int Order { get; set; }
+        private MethodInfo Action { get; set; }
+        private object ActionContext { get; set; }
 
-        public bool MeasureExecutionTime { get; set; }
 
-        public Task ExecuteAction(object parameter)
+        internal Task ExecuteAction(object parameter)
         {
             if (ActionFunc != null)
             {
-                return ActionFunc(parameter);
+                return ActionFunc(parameter.ToString());
             }
             if (Action != null && ActionContext != null)
             {
-                var res = Action.Invoke(ActionContext, new[] { ParseParameters(parameter.ToString()) });
+                var parameters = new object[Action.GetParameters().Count()];
+                if (parameters.Length > 0)
+                    parameters[0] = parameter.ToString();
+                if (parameters.Length > 1)
+                    parameters[1] = ParseParameters(parameter.ToString());
+
+                var res = Action.Invoke(ActionContext, parameters);
                 return (res is Task) ? (Task)res : Task.FromResult(res);
             }
 
             throw new InvalidOperationException("Either ActionFunc or Action must be defined");
         }
 
-
+        /// <summary>
+        /// Given an input string, will parse it according to the Parameters defined in this Console Action
+        /// </summary>
+        /// <param name="input">input string to parse</param>
+        /// <returns>dynamic object with parsed results</returns>
+        /// <exception cref="ArgumentException">The method will throw an ArgumentException if a parameter is defined multiple times in the input string, if the input string is malformed or if a paramter's value cannot be parsed correctly into the desired type.</exception>
         public dynamic ParseParameters(string input)
         {
             input += " "; //this is to ensure we find the end index for the last parameter (i.e. "-f file" -> "-f file " so that " " is found at the end)
-            
+
             dynamic res = new ExpandoObject();
             var resDic = res as IDictionary<string, object>;
-            
+
             foreach (var p in Parameters)
             {
                 resDic.Add(p.ParameterName, p.DefaultValue != null ? Convert.ChangeType(p.DefaultValue, p.Type) : (p.Type.IsValueType ? Activator.CreateInstance(p.Type) : null));
@@ -133,7 +164,7 @@ namespace ConsoleActions
                 var endIndex = input.IndexOf(endIndexChar, startIndex + indexOffset);
                 if (endIndex == -1)
                     throw new ArgumentException($"cannot parse parameter {p.ParameterName} from input string {input}. No ending found");
-                
+
                 var argValue = input.Substring(startIndex + indexOffset, endIndex - startIndex - indexOffset);
                 try
                 {
@@ -147,15 +178,5 @@ namespace ConsoleActions
 
             return res;
         }
-    }
-
-
-    public class ConsoleActionParameter
-    {
-        public string ParameterName { get; set; }
-        public IEnumerable<string> Variants { get; set; }
-        public Type Type { get; set; }
-        public object DefaultValue { get; set; }
-
     }
 }
