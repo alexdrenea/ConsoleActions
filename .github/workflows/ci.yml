@@ -6,6 +6,7 @@ on:
     paths:
     - 'ConsoleActions/**'
     - 'SampleREPL/**'
+    - '.github/workflows/**'
 env:
   Configuration: Release
 jobs:
