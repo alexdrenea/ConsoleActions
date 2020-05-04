@@ -22,4 +22,4 @@ jobs:
     - name: Build Projects
       run: dotnet build --configuration ${{ env.Configuration }}
     - name: Run Tests
-      run: dotnet test **/*.csproj --configuration ${{ env.Configuration }}
+      run: dotnet test ConsoleActions.Tests/ConsoleActions.Tests.csproj --configuration ${{ env.Configuration }}
