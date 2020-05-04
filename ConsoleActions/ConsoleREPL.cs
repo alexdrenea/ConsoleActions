@@ -62,7 +62,9 @@ namespace ConsoleActions
         public void SetupActions()
         {
             var allMethods = _executionContext.GetType().GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
             _actionsList = allMethods.Where(m => m.GetCustomAttribute<ActionAttribute>() != null).Select(m => new ConsoleAction(m, _executionContext)).ToList();
+           
             _actionsList.Insert(0, new ConsoleAction(Help, "Displays this message", 0, "h", "help", "?"));
             
             _actions = _actionsList.SelectMany(ca => ca.Commands.Select(c => new KeyValuePair<string, ConsoleAction>(c, ca)))
@@ -70,7 +72,7 @@ namespace ConsoleActions
 
         }
 
-        private async Task Help(string text)
+        private async Task Help(dynamic text)
         {
             var actions = _actionsList.OrderBy(o => o.Order).ToDictionary(k => string.Join(", ", k.Commands), v => v.Description);
             var maxCommand = actions.Max(a => a.Key.Length);
