@@ -28,7 +28,7 @@ namespace SampleREPL
         }
 
         [Action("a", "methodA", Description = "Test method that does not need an input", DisplayOrder = 1, MeasureExexutionTime = true)]
-        public async Task MethodA()
+        public void MethodA()
         {
             "MethodA".WriteInLine(ConsoleColor.DarkCyan);
             Console.WriteLine($"called. No inputs tracked.");
@@ -38,11 +38,12 @@ namespace SampleREPL
         public async Task MethodB(string input)
         {
             "Method2".WriteInLine(ConsoleColor.DarkCyan);
+            Console.WriteLine($"methods can also be async.");
             Console.WriteLine($"called with '{input}'");
         }
 
         [Action("c", "methodC", Description = "Test method that gets the raw input from user and the parsed input according to the declared parameters.", DisplayOrder = 3, MeasureExexutionTime = false)]
-        public async Task MethodC(string input, dynamic parsedInput)
+        public void MethodC(string input, dynamic parsedInput)
         {
             "MethodC".WriteInLine(ConsoleColor.DarkCyan);
             Console.WriteLine($"called with '{input}'. No parsed inputs since no inputs defined in the action parameter attributes");
@@ -52,7 +53,7 @@ namespace SampleREPL
         [ActionParameter("fileName", "-f", "--file")]
         [ActionParameter("keepOpen", Type = typeof(bool), DefaultValue = true)]
         [ActionParameter("recordsToRead", Type = typeof(int), DefaultValue = 1000)]
-        public async Task MethodD(string input, dynamic parsed)
+        public void MethodD(string input, dynamic parsed)
         {
             "MethodD".WriteInLine(ConsoleColor.DarkCyan);
             Console.WriteLine($"called with input='{input}'. Parsed into: file='{parsed.fileName}' and keepOpen={parsed.keepOpen} and recordsToRead={parsed.recordsToRead}");
