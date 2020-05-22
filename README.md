@@ -1,3 +1,5 @@
+[![code examples](https://iorecipes.com/c/consoleactions-1/repo-badge)](https://iorecipes.com/c/consoleactions-1)
+
 # Console Actions
 
 Simple library that enhances productivity when writing a console app. 
